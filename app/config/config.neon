@@ -19,4 +19,8 @@ session:
 
 
 services:
-	router: App\RouterFactory::createRouter
+        - App\Model\Authentication\PasswordAuthenticator
+        - App\Model\PlayerManager
+        - App\Model\Logger
+        - App\Model\ChatManager
+        router: App\RouterFactory::createRouter
