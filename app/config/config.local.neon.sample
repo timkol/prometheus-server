@@ -1,6 +1,7 @@
 parameters:
         chat:
             pollInterval: 100000
+        answer:
 
 database:
 	dsn: 'mysql:host=127.0.0.1;dbname=test'

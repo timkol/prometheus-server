@@ -34,6 +34,16 @@ class ChatPresenter extends BasePresenter
                 );
                 $notifications[] = $notification;
             }
+            $advices = $this->chatManager->getNewNotifications($this->identity->data[PlayerManager::COLUMN_ID], $lastAsked);
+            foreach ($advices as $message){
+                $author = $this->playerManager->getPlayerByPlayerId($message[ChatManager::COLUMN_SENDER]);
+                $notification = array(
+                    'text' => $message[ChatManager::COLUMN_MESSAGE],
+                    'author' => $author[PlayerManager::COLUMN_NAME],
+                    'time' => $message[ChatManager::COLUMN_SENT]->getTimestamp()
+                );
+                $notifications[] = $notification;
+            }
         }
         $payload = array(
             'payload' => $notifications,
@@ -53,7 +63,7 @@ class ChatPresenter extends BasePresenter
             $this->error("PERMISSION DENIED", \Nette\Http\Response::S401_UNAUTHORIZED);
         }
         
-        $this->chatManager->addMessage($this->identity->data[PlayerManager::COLUMN_ID], $message, ChatReceivers::EXCEPT_SENDER);
+        $this->chatManager->addBroadcast($this->identity->data[PlayerManager::COLUMN_ID], $message);
         $this->sendResponse(new JsonResponse(array(
             'status' => true
         )));

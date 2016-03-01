@@ -7,15 +7,19 @@ use Nette;
 class ChatManager extends Nette\Object {
 
     const
-	TABLE_CHAT_NAME = 'chat',
+	TABLE_CHAT_PRIVATE_NAME = 'chat_private',
+        TABLE_CHAT_BROADCAST_NAME = 'chat_broadcast',
 	//COLUMN_CHAT_ID = 'chat_id',
 	COLUMN_MESSAGE = 'message',
 	COLUMN_SENDER = 'sender_id',
         COLUMN_INSERTED = 'inserted',
             
         TABLE_RECEIVERS_NAME = 'receiver',
-        COLUMN_CHAT_ID = 'chat_id',
-        COLUMN_RECEIVER_ID = 'player_id';
+        COLUMN_CHAT_PRIVATE_ID = 'chat_private_id',
+        COLUMN_RECEIVER_ID = 'player_id',
+        COLUMN_SENT = 'sent', //when send message to that receiver
+            
+        COLUMN_CHAT_BROADCAST_ID = 'chat_broadcast_id';
 
     /** @var Nette\Database\Context */
     private $database;
@@ -32,13 +36,35 @@ class ChatManager extends Nette\Object {
         $this->playerManager = $playerManager;
         $this->logger = $logger;
     }
-        
-    public function getNewMessages($player_id, $timestamp){
+    
+    public function getNewNotifications($player_id, $timestamp){
         //$this->playerManager->setAsActive($player_id);
-        return $this->database->table(self::TABLE_CHAT_NAME)->where(self::COLUMN_INSERTED.' > ?', $timestamp)
-                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_RECEIVER_ID, $player_id)->fetchAll();
+        return $this->database->table(self::TABLE_CHAT_PRIVATE_NAME)
+                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT.' > ?', (new \DateTime())->setTimestamp($timestamp))
+                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT.' < NOW()')
+                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_RECEIVER_ID, $player_id)
+                ->order(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT)
+                ->select(':'.ChatManager::TABLE_RECEIVERS_NAME.'.'.ChatManager::COLUMN_SENT)
+                ->select(self::COLUMN_SENDER)->select(self::COLUMN_MESSAGE)->fetchAll();
+    }
+        
+    public function getNewMessages($player_id, $timestamp){        
+        return $this->database->table(self::TABLE_CHAT_BROADCAST_NAME)
+                ->where(self::COLUMN_INSERTED.' > ?', (new \DateTime())->setTimestamp($timestamp))
+                //->where(self::COLUMN_INSERTED.' < NOW()') //unneccessary
+                ->where(self::COLUMN_SENDER.' != ?', $player_id)
+                ->order(self::COLUMN_INSERTED)->fetchAll();
     }
     
+    public function addBroadcast($sender_id, $message){
+        $this->database->table(self::TABLE_CHAT_BROADCAST_NAME)->insert(array(
+                self::COLUMN_SENDER => $sender_id,
+                self::COLUMN_MESSAGE => $message,
+                self::COLUMN_INSERTED => new \DateTime()
+            ));
+    }
+
+    /** @deprecated */
     public function addMessage($sender_id, $message, $receivers){
         switch ($receivers){
             case ChatReceivers::ALL:
@@ -49,15 +75,16 @@ class ChatManager extends Nette\Object {
                 }
                 break;
             case ChatReceivers::EXCEPT_SENDER:
-                $receivers = array();
+                /*$receivers = array();
                 $players = $this->playerManager->getAllPlayers();
                 foreach ($players as $player){
                     $player_id = $player[PlayerManager::COLUMN_ID];
                     if($player_id != $sender_id){
                         $receivers[] = $player_id;
                     }
-                }
-                break;
+                }*/
+                $this->addBroadcast($sender_id, $message);
+                return;
         }
                 
         if(is_array($receivers)){

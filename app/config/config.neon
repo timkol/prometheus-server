@@ -23,4 +23,5 @@ services:
         - App\Model\PlayerManager
         - App\Model\Logger
         - App\Model\ChatManager
+        - App\Model\ProgressManager
         router: App\RouterFactory::createRouter
