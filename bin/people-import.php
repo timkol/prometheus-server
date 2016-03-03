@@ -31,9 +31,6 @@ if (($handle = fopen("../resources/origin/contestants.csv", "r")) !== FALSE) {
             exit(1);
         }
         
-        $person_id = $personTable->add($family_name, $other_name, $display_name, $gender, $person_type);
-        $login_id = $loginTable->add($person_id, $login, $hash);
-        //$grantTable->add($login_id, $role_id);
         $loginStripCSV->add($login, $password);
     }
     fclose($handle);
