@@ -7,7 +7,8 @@ use Nette,
     Nette\Security\IAuthenticator,
     Nette\Security\Identity,
     Nette\Security\Passwords,
-    App\Model\PlayerManager;
+    App\Model\PlayerManager,
+    App\Model\MailManager;
 
 class PasswordAuthenticator extends Nette\Object
 {
@@ -20,12 +21,16 @@ class PasswordAuthenticator extends Nette\Object
     
     /** @var \App\Model\PlayerManager */
     private $playerManager;
+    
+    /** @var \App\Model\MailManager */
+    private $mailManager;
 
-    public function __construct(Nette\Database\Context $database, \App\Model\Logger $logger, \App\Model\PlayerManager $playerManager)
+    public function __construct(Nette\Database\Context $database, \App\Model\Logger $logger, \App\Model\PlayerManager $playerManager, \App\Model\MailManager $mailManager)
     {
 	$this->database = $database;
         $this->logger = $logger;
         $this->playerManager = $playerManager;
+        $this->mailManager = $mailManager;
     }
 
 
@@ -98,13 +103,21 @@ class PasswordAuthenticator extends Nette\Object
      * @param  string
      * @return void
      */
-    public function add($username, $password)
+    public function add($login, $password, $token, $name, $email, $gender, $osloveni, $race)
     {
 	try {
-            $this->database->table(PlayerManager::TABLE_PLAYER_NAME)->insert(array(
-		PlayerManager::COLUMN_LOGIN => $username,
+            $row = $this->database->table(PlayerManager::TABLE_PLAYER_NAME)->insert(array(
+		PlayerManager::COLUMN_LOGIN => $login,
 		PlayerManager::COLUMN_PASSWORD_HASH => Passwords::hash($password),
+                PlayerManager::COLUMN_TOKEN => $token,
+                PlayerManager::COLUMN_NAME => $name,
+                PlayerManager::COLUMN_EMAIL => $email,
+                PlayerManager::COLUMN_GENDER => $gender,
+                PlayerManager::COLUMN_OSLOVENI => $osloveni,
+                PlayerManager::COLUMN_RACE => $race
             ));
+            
+            $this->mailManager->sendInvitation($row[PlayerManager::COLUMN_ID], $password);
 	} 
         catch (Nette\Database\UniqueConstraintViolationException $e) {
             throw new DuplicateNameException;

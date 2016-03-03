@@ -2,6 +2,15 @@ parameters:
         chat:
             pollInterval: 100000
         answer:
+        mail:
+            win:
+                from: 'Example <ex@ex.com>'
+                template: %appDir%/Mail/win.latte
+                attachments: []
+            invitation:
+                from: 'Example <ex@ex.com>'
+                template: %appDir%/Mail/invitation.latte
+                attachments: []
 
 database:
 	dsn: 'mysql:host=127.0.0.1;dbname=test'

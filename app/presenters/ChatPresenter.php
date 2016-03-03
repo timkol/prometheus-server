@@ -20,19 +20,23 @@ class ChatPresenter extends BasePresenter
     public function actionPoll() {        
         $lastAsked = (int) $this->request->getPost('lastAsked');
         $pollInterval = $this->context->parameters['chat']['pollInterval'];
+        $onlyNotifications = ($this->request->getPost('onlyNotifications') == 'True')?true:false;
         $now = time();
         
         $notifications = array();
-        if($lastAsked != 0 && $lastAsked != NULL) {
-            $messages = $this->chatManager->getNewMessages($this->identity->data[PlayerManager::COLUMN_ID], $lastAsked);
-            foreach ($messages as $message){
-                $author = $this->playerManager->getPlayerByPlayerId($message[ChatManager::COLUMN_SENDER]);
-                $notification = array(
-                    'text' => $message[ChatManager::COLUMN_MESSAGE],
-                    'author' => $author[PlayerManager::COLUMN_NAME],
-                    'time' => $message[ChatManager::COLUMN_INSERTED]->getTimestamp()
-                );
-                $notifications[] = $notification;
+        //if($lastAsked != 0 && $lastAsked != NULL) {
+        if($lastAsked != NULL) {
+            if(!$onlyNotifications){                
+                $messages = $this->chatManager->getNewMessages($this->identity->data[PlayerManager::COLUMN_ID], $lastAsked);
+                foreach ($messages as $message){
+                    $author = $this->playerManager->getPlayerByPlayerId($message[ChatManager::COLUMN_SENDER]);
+                    $notification = array(
+                        'text' => $message[ChatManager::COLUMN_MESSAGE],
+                        'author' => $author[PlayerManager::COLUMN_NAME],
+                        'time' => $message[ChatManager::COLUMN_INSERTED]->getTimestamp()
+                    );
+                    $notifications[] = $notification;
+                }
             }
             $advices = $this->chatManager->getNewNotifications($this->identity->data[PlayerManager::COLUMN_ID], $lastAsked);
             foreach ($advices as $message){
@@ -45,17 +49,19 @@ class ChatPresenter extends BasePresenter
                 $notifications[] = $notification;
             }
         }
+        
         $payload = array(
             'payload' => $notifications,
             'lastAsked' => $now,
             'pollInterval' => $pollInterval,
+            'stuck' => $this->playerManager->isStuck($this->identity->data[PlayerManager::COLUMN_ID]),
             'status' => true
         );
         $this->sendResponse(new JsonResponse($payload));
     }
     
     public function actionAdd(){
-        $timestamp = (int) $this->request->getPost('timestamp');
+        //$timestamp = (int) $this->request->getPost('timestamp');
         $message = $this->request->getPost('message');
         $author = $this->request->getPost('author');
         

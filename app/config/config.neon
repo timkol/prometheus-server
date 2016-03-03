@@ -24,4 +24,6 @@ services:
         - App\Model\Logger
         - App\Model\ChatManager
         - App\Model\ProgressManager
+        - App\Model\MailManager
+        - Nette\Mail\SendmailMailer
         router: App\RouterFactory::createRouter

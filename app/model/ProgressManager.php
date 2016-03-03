@@ -30,18 +30,22 @@ class ProgressManager extends Nette\Object {
     /** @var \App\Model\PlayerManager */
     private $playerManager;
     
+    /** @var \App\Model\MailManager */
+    private $mailMananger;
+    
     /** @var \App\Model\Logger */
     private $logger;
     
     /** @var Nette\DI\Container */
     private $context;
 
-    public function __construct(Nette\Database\Context $database, Nette\DI\Container $context, \App\Model\PlayerManager $playerManager, \App\Model\Logger $logger)
+    public function __construct(Nette\Database\Context $database, Nette\DI\Container $context, \App\Model\PlayerManager $playerManager, \App\Model\Logger $logger, \App\Model\MailManager $mailManager)
     {
 	$this->database = $database;
         $this->playerManager = $playerManager;
         $this->logger = $logger;
         $this->context = $context;
+        $this->mailMananger = $mailManager;
     }
     
     public function addAnswer($player_id, $answer){
@@ -52,7 +56,9 @@ class ProgressManager extends Nette\Object {
         ));
         
         if($this->context->parameters['answer'] == $answer){
-            //TODO sendmail
+            if(!$this->playerManager->hasAlreadyWon($player_id)){
+                $this->mailMananger->sendWinningMail($player_id);
+            }
             return true;
         }
         return false;

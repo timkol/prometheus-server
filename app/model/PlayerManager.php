@@ -13,8 +13,14 @@ class PlayerManager extends Nette\Object {
 	COLUMN_PASSWORD_HASH = 'hash',
         COLUMN_TOKEN = 'token',
 	COLUMN_NAME = 'name',
+        COLUMN_EMAIL = 'email',
+        COLUMN_GENDER = 'gender',
+        COLUMN_OSLOVENI = 'osloveni',
+        COLUMN_RACE = 'race',
         COLUMN_LAST_ACTIVE = 'last_active',
-        COLUMN_LAST_LOGIN = 'last_login';
+        COLUMN_LAST_LOGIN = 'last_login',
+        COLUMN_STUCK = 'stuck',
+        COLUMN_WON = 'won';
 
 
     /** @var Nette\Database\Context */
@@ -37,6 +43,32 @@ class PlayerManager extends Nette\Object {
         $this->getPlayerByPlayerId($player_id)->update(array(
             self::COLUMN_LAST_ACTIVE => new \DateTime()
         ));
+    }
+    
+    public function isStuck($player_id){
+        $player = $this->getPlayerByPlayerId($player_id);
+        if($player[self::COLUMN_STUCK] == 1){
+            $player->update(array(
+                self::COLUMN_STUCK => 0
+            ));
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    
+    public function hasAlreadyWon($player_id){
+        $player = $this->getPlayerByPlayerId($player_id);
+        if($player[self::COLUMN_WON] == 0){
+            $player->update(array(
+                self::COLUMN_WON => 1
+            ));
+            return false;
+        }
+        else{
+            return true;
+        }
     }
     
 }
