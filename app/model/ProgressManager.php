@@ -55,7 +55,7 @@ class ProgressManager extends Nette\Object {
             self::COLUMN_INSERTED => new \DateTime()
         ));
         
-        if($this->context->parameters['answer'] == $answer){
+        if(in_array($answer, $this->context->parameters['answer'])){
             if(!$this->playerManager->hasAlreadyWon($player_id)){
                 $this->mailMananger->sendWinningMail($player_id);
             }
