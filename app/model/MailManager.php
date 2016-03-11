@@ -35,7 +35,9 @@ class MailManager extends Nette\Object {
         $latte = new \Latte\Engine;
         $params = array(
             'gender' => $player[PlayerManager::COLUMN_GENDER],
-            'osloveni' => $player[PlayerManager::COLUMN_OSLOVENI]
+            'osloveni' => $player[PlayerManager::COLUMN_OSLOVENI],
+            'race' => $player[PlayerManager::COLUMN_RACE],
+            'name' => $player[PlayerManager::COLUMN_NAME]
         );
         
         $mail = new Message;
