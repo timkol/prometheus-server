@@ -40,8 +40,8 @@ class ChatManager extends Nette\Object {
     public function getNewNotifications($player_id, $timestamp){
         //$this->playerManager->setAsActive($player_id);
         return $this->database->table(self::TABLE_CHAT_PRIVATE_NAME)
-                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT.' > ?', (new \DateTime())->setTimestamp($timestamp))
-                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT.' < NOW()')
+                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT.' >= ?', (new \DateTime())->setTimestamp($timestamp))
+                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT.' < ?', new \DateTime())
                 ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_RECEIVER_ID, $player_id)
                 ->order(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT)
                 ->select(':'.ChatManager::TABLE_RECEIVERS_NAME.'.'.ChatManager::COLUMN_SENT)
@@ -50,17 +50,19 @@ class ChatManager extends Nette\Object {
         
     public function getNewMessages($player_id, $timestamp){        
         return $this->database->table(self::TABLE_CHAT_BROADCAST_NAME)
-                ->where(self::COLUMN_INSERTED.' > ?', (new \DateTime())->setTimestamp($timestamp))
-                //->where(self::COLUMN_INSERTED.' < NOW()') //unneccessary
+                ->where(self::COLUMN_INSERTED.' >= ?', (new \DateTime())->setTimestamp($timestamp))
+                ->where(self::COLUMN_INSERTED.' < ?', new \DateTime())
                 ->where(self::COLUMN_SENDER.' != ?', $player_id)
                 ->order(self::COLUMN_INSERTED)->fetchAll();
     }
     
     public function addBroadcast($sender_id, $message){
+        $date = new \DateTime();
+        $date->add(new \DateInterval('PT2S')); //two seconds reserve, manually when inserting notifications
         $this->database->table(self::TABLE_CHAT_BROADCAST_NAME)->insert(array(
                 self::COLUMN_SENDER => $sender_id,
                 self::COLUMN_MESSAGE => $message,
-                self::COLUMN_INSERTED => new \DateTime()
+                self::COLUMN_INSERTED => $date
             ));
     }
 
