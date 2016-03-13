@@ -23,6 +23,9 @@ class ChatPresenter extends BasePresenter
         $onlyNotifications = ($this->request->getPost('onlyNotifications') == 'True')?true:false;
         $now = time();
         
+        //dirty hack
+        if($lastAsked == 0) $lastAsked++;
+        
         $notifications = array();
         //if($lastAsked != 0 && $lastAsked != NULL) {
         if($lastAsked != NULL) {               
