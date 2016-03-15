@@ -28,8 +28,13 @@ class ChatPresenter extends BasePresenter
         
         $notifications = array();
         //if($lastAsked != 0 && $lastAsked != NULL) {
-        if($lastAsked != NULL) {               
-                $messages = $this->chatManager->getNewMessages($this->identity->data[PlayerManager::COLUMN_ID], $lastAsked);
+        if($lastAsked != NULL) {
+                if($onlyNotifications){
+                    $messages = $this->chatManager->getAllMessages();
+                }
+                else{
+                    $messages = $this->chatManager->getNewMessages($this->identity->data[PlayerManager::COLUMN_ID], $lastAsked);
+                }
                 foreach ($messages as $message){
                     $author = $this->playerManager->getPlayerByPlayerId($message[ChatManager::COLUMN_SENDER]);
                     $notification = array(
@@ -39,7 +44,12 @@ class ChatPresenter extends BasePresenter
                     );
                     $notifications[] = $notification;
                 }
-            $advices = $this->chatManager->getNewNotifications($this->identity->data[PlayerManager::COLUMN_ID], $lastAsked);
+            if($onlyNotifications){
+                $advices = $this->chatManager->getAllNotifications($this->identity->data[PlayerManager::COLUMN_ID]);
+            }
+            else{
+                $advices = $this->chatManager->getNewNotifications($this->identity->data[PlayerManager::COLUMN_ID], $lastAsked);
+            }
             foreach ($advices as $message){
                 $author = $this->playerManager->getPlayerByPlayerId($message[ChatManager::COLUMN_SENDER]);
                 $notification = array(

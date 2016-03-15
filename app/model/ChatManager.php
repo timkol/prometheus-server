@@ -37,6 +37,21 @@ class ChatManager extends Nette\Object {
         $this->logger = $logger;
     }
     
+    public function getAllNotifications($player_id){
+        return $this->database->table(self::TABLE_CHAT_PRIVATE_NAME)
+                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT.' < ?', new \DateTime())
+                ->where(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_RECEIVER_ID, $player_id)
+                ->order(":".self::TABLE_RECEIVERS_NAME.'.'.self::COLUMN_SENT)
+                ->select(':'.ChatManager::TABLE_RECEIVERS_NAME.'.'.ChatManager::COLUMN_SENT)
+                ->select(self::COLUMN_SENDER)->select(self::COLUMN_MESSAGE)->fetchAll();
+    }
+    
+    public function getAllMessages(){
+        return $this->database->table(self::TABLE_CHAT_BROADCAST_NAME)
+                ->where(self::COLUMN_INSERTED.' < ?', new \DateTime())
+                ->order(self::COLUMN_INSERTED)->fetchAll();
+    }
+    
     public function getNewNotifications($player_id, $timestamp){
         //$this->playerManager->setAsActive($player_id);
         return $this->database->table(self::TABLE_CHAT_PRIVATE_NAME)
