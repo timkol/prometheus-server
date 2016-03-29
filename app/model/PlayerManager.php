@@ -38,6 +38,10 @@ class PlayerManager extends Nette\Object {
     public function getAllPlayers(){
         return $this->database->table(self::TABLE_PLAYER_NAME)->fetchAll();
     }
+    
+    public function getAllNotWinningPlayers(){
+        return $this->database->table(self::TABLE_PLAYER_NAME)->where(self::COLUMN_WON, 0)->fetchAll();
+    }
 
     public function setAsActive($player_id){
         $this->getPlayerByPlayerId($player_id)->update(array(
