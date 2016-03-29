@@ -11,5 +11,5 @@ foreach($losingPlayers as $player){
     $player->update(array(
         PlayerManager::COLUMN_WON => 2
     ));
-    $mailMananger->sendWinningMail($player[PlayerManager::COLUMN_ID]);
+    $mailManager->sendWinningMail($player[PlayerManager::COLUMN_ID]);
 }
